@@ -18,8 +18,8 @@ In this project, a deep neural network was trained to identify and track a targe
 [image7]: ./pics/model.png
 [image8]: ./pics/hyperparameters.png
 [image9]: ./pics/Scores.png
-[image10]: ./pics/model_viz.png
-[image11]: ./pics/skip.png
+[image10]: ./pics/model_graph.png
+[image11]: ./pics/model_table.png
 
 ## Objective ##
 In this project, we are tasked with the building of a fully convolutional network to identify a target and then track that target in an
@@ -50,8 +50,6 @@ One effect of convolutions is that we narrow down the scope by looking at some f
 Skip connections helps us to retain a larger view of our problem. This works by connecting the output of one layer to the input of a
 non-adjacent layer. This allows the network to use information from multiple resolutions. The network is then able to make more precise
 segmentation decisions. Below is a simple visualization of skip connections
-
-![skip][image11]
 
 ### Semantic Segmentation
 Semantic segmentation is the process of assigning meaning to a part of an object. In this project, this is done at the pixel level, assigning each
@@ -141,24 +139,33 @@ def fcn_model(inputs, num_classes):
     return layers.Conv2D(num_classes, 1, activation='softmax', padding='same')(x)
 ```
 
-To get a better idea of what this model looks like, see the following image:
+To get a better idea of what this model looks like, see the following image and table:
 
-![model_viz][image10]
+![model_graph][image10]
 
-Starting on the far left, we have the first encoder. This uses a kernel size of 3, stride of 2, and 64 filters. The next encoding layer uses a kernel of 3, stride of 2, and 128 filters.
-In the middle we have our 1x1 convolution with kernel size of 1, stride of 1, and 256 filters. The decoder side is essentially the opposite of our encoder side. We are upsampling at this point.
+From this graph, we can see how the network is laid out, including all of the conv2d layers, bilinear upsampling layers, concatenation layers,
+1x1 convolutions (labeled conv2d), batch normalization, and finally, skip connections.
 
-As you can see, this isn't a particularly deep model. I was more concerned with keeping everything straightforward, however, it would
-be quite easy to extend this to have many more encoding and decoding layers.
+Next, I also produced a table of the network which includes some parameter information about the network:
+
+![model_table][image11]
+
 
 ##### Hyperparameters
 The following hyperparameters were using for training:
 
 ![hyperparameters][image8]
 
-A few notes on the hyperparameters. I settled on 100 epochs as it allowed enough training for the model to perform reasonably well. Testing with lower epochs with this network did not produce
-good results. I tried several different settings for batch size, but 32 seemed to run the best on my runs. Learning rate was also tested quite a bit. I saw similar results between 0.005 and 0.001,
-but decided to go with 0.005 for this submission. I left the other three at the default provided to us.
+A few notes on the hyperparameters. I settled on 100 epochs as it allowed enough training for the model to perform reasonably well. I did try lowering the number of epochs, but never got great results using the
+default data. In this case, lowering the number of epochs did not give my network enough time and information to form a prediction with any significant level of accuracy (~0.2 - 0.3)
+
+For batch size, we care concerned with two things: time efficiency of training and the noisiness of the gradient estimate. Essentially, updating the parameters of the whole training set is very
+inefficient. By batching the data, we only update a few at a time. Some popular batch sizes are 32, 64, 128, and 256. I went with 32 (I also tested 64 and 128) as it was quick and didn't vary from the performance
+of other batch sizes.
+
+Learning rate is essentially how quickly the network abandons old weights for new ones. Lower learning rates allow us to converge to something useful and give us a better prediction score, however it also
+takes longer to train. So we need to find a learning rate that is low enough to give us enough accuracy, but doesn't take days to train. For this project, I used 0.005 (I also tried 0.01 and 0.05). This means it
+took a little longer to train (vs. the other learning rates I tried), but I got a much better score using this learning rate.
 
 #### Predictions
 Now we take a look at the results of training. What follows are several images. In each image we have the following (from left to right):
@@ -207,7 +214,9 @@ it would work as well for smaller objects. One huge problem with the current mod
 that is closer, but smaller, so the network would struggle to follow. Another issue, as mentioned above, is that bilinear upsampling causes loss of some finer details. With larger objects, losing some
 detail isn't as detrimental, but with smaller objects, it would be an issue. To overcome this, I would make several changes. First, we would have to ensure to get a lot of very detailed and comprehensive
 training data. I would also change our strategy of using bilinear upsampling. Switching that out for transpose convolutional layers would add learnable layers and help retain some of the finer
-details needed for smaller objects. It would slow down the network some, but is probably necessary for smaller objects.
+details needed for smaller objects. It would slow down the network some, but is probably necessary for smaller objects. As a final note, in order for this to apply to other objects, we would need to
+collect different data (from the data collected for this project) in which the other objects are specifically targeted. We cannot use the data as is to switch tracking targets. Saying that, however, makes me
+curious as to how target switching could be accomplished. Maybe that would make an interesting side project! Speaking of side projects....
 
 ### Extra!
 So since this was the final project, I decided to have a little extra fun and incorporate something I have been reading about

@@ -84,8 +84,8 @@ def bilinear_upsample(input_layer):
 ```
 
 ##### Encoder
-For our encoder, we are using convolutional layers to reduce down to a 1x1 convolutional layer (instead of a fully connected layer). A technique known
-as separable convolutions (or depthwise separable convolutions) was used here. This reduces the number of parameters needed, increasing the efficiency
+The encoder is a series of convolutional layers that has the goal of extracting features from the image. Our encoder is then connected to a 1x1 convolutional layer (instead of a fully connected layer).
+A technique known as separable convolutions (or depthwise separable convolutions) was used here. This reduces the number of parameters needed, increasing the efficiency
 of the encoder. This is comprised of a convolution performed over each channel of an input layer and is followed by a 1x1 convolution that takes the
 output channels from the previous step and then combines them into an output layer. Below is the code to create the encoder for this project:
 
@@ -104,9 +104,9 @@ simplifies creation of deeper networks, and provides some regularization. The fo
 
 
 ##### Decoder
-There are several ways to achieve upsampling. In this project, we used bilinear upsampling. This is a resampling technique that utilizes the weighted average
-of the four nearest known pixels to estimate  a new pixel intensity value. Bilinear upsampling layers do not contribute as a learnable layer like transposed convolutional
-layers, and it can lose some finer details, but it helps to speed up the network. Code for the decoder is below:
+The responsibility of the decoder is to upscale the output of the 1x1 convolution layers so that the final output is the same size as the original image. There are several ways to achieve upsampling.
+In this project, we used bilinear upsampling. This is a resampling technique that utilizes the weighted average of the four nearest known pixels to estimate a new pixel intensity value.
+Bilinear upsampling layers do not contribute as a learnable layer like transposed convolutional layers, and it can lose some finer details, but it helps to speed up the network. Code for the decoder is below:
 
 ```python
 def decoder_block(small_ip_layer, large_ip_layer, filters):
